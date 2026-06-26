@@ -1,0 +1,4 @@
+*.exe
+*.o
+data/books.txt
+data/export.csv
