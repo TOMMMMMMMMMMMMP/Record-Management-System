@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <limits>
+#include <iomanip>
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -75,7 +76,32 @@ void addRecord() {
 }
 
 void displayAllRecords() {
-    std::cout << "[displayAllRecords] Not implemented yet." << std::endl;
+    std::vector<Book> books = loadAllBooks();
+
+    if (books.empty()) {
+        std::cout << "\nNo records found.\n";
+        return;
+    }
+
+    std::cout << "\n";
+    std::cout << std::left
+              << std::setw(6)  << "ID"
+              << std::setw(30) << "Title"
+              << std::setw(25) << "Author"
+              << std::setw(6)  << "Year"
+              << "\n";
+    std::cout << std::string(67, '-') << "\n";
+
+    for (const auto& b : books) {
+        std::cout << std::left
+                  << std::setw(6)  << b.id
+                  << std::setw(30) << b.title
+                  << std::setw(25) << b.author
+                  << std::setw(6)  << b.year
+                  << "\n";
+    }
+    std::cout << std::string(67, '-') << "\n";
+    std::cout << books.size() << " record(s) found.\n";
 }
 
 void searchRecordByID() {
