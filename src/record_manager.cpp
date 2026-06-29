@@ -179,7 +179,59 @@ void deleteRecord() {
 }
 
 void updateRecord() {
-    std::cout << "[updateRecord] Not implemented yet." << std::endl;
+    std::vector<Book> books = loadAllBooks();
+
+    if (books.empty()) {
+        std::cout << "\nNo records found.\n";
+        return;
+    }
+
+    int id;
+    std::cout << "\n--- Update Record ---\n";
+    std::cout << "Enter ID to update: ";
+    std::cin >> id;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    bool found = false;
+
+    for (auto& b : books) {
+        if (b.id == id) {
+            found = true;
+
+            std::cout << "\nCurrent record:\n";
+            std::cout << std::string(40, '-') << "\n";
+            std::cout << "ID     : " << b.id     << "\n";
+            std::cout << "Title  : " << b.title  << "\n";
+            std::cout << "Author : " << b.author << "\n";
+            std::cout << "Year   : " << b.year   << "\n";
+            std::cout << std::string(40, '-') << "\n";
+            std::cout << "(Leave blank to keep current value)\n\n";
+
+            std::string input;
+
+            std::cout << "New title [" << b.title << "]: ";
+            std::getline(std::cin, input);
+            if (!input.empty()) b.title = input;
+
+            std::cout << "New author [" << b.author << "]: ";
+            std::getline(std::cin, input);
+            if (!input.empty()) b.author = input;
+
+            std::cout << "New year [" << b.year << "]: ";
+            std::getline(std::cin, input);
+            if (!input.empty()) b.year = std::stoi(input);
+
+            std::cout << "\nRecord updated successfully.\n";
+            break;
+        }
+    }
+
+    if (!found) {
+        std::cout << "No record found with ID " << id << ".\n";
+        return;
+    }
+
+    saveAllBooks(books);
 }
 
 void sortRecords() {
