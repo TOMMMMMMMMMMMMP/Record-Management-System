@@ -135,7 +135,47 @@ void searchRecordByID() {
 }
 
 void deleteRecord() {
-    std::cout << "[deleteRecord] Not implemented yet." << std::endl;
+    std::vector<Book> books = loadAllBooks();
+
+    if (books.empty()) {
+        std::cout << "\nNo records found.\n";
+        return;
+    }
+
+    int id;
+    std::cout << "\n--- Delete Record ---\n";
+    std::cout << "Enter ID to delete: ";
+    std::cin >> id;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    bool found = false;
+    std::vector<Book> updated;
+
+    for (const auto& b : books) {
+        if (b.id == id) {
+            found = true;
+            std::cout << "Deleting: [" << b.id << "] " << b.title << " by " << b.author << "\n";
+        } else {
+            updated.push_back(b);
+        }
+    }
+
+    if (!found) {
+        std::cout << "No record found with ID " << id << ".\n";
+        return;
+    }
+
+    char confirm;
+    std::cout << "Are you sure? (y/n): ";
+    std::cin >> confirm;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    if (confirm == 'y' || confirm == 'Y') {
+        saveAllBooks(updated);
+        std::cout << "Record deleted successfully.\n";
+    } else {
+        std::cout << "Deletion cancelled.\n";
+    }
 }
 
 void updateRecord() {
