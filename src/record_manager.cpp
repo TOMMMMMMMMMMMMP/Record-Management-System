@@ -17,16 +17,18 @@ std::vector<Book> loadAllBooks() {
     std::string line;
     while (std::getline(file, line)) {
         if (line.empty()) continue;
-        std::istringstream ss(line);
-        std::string token;
-        Book b;
-
-        std::getline(ss, token, '|'); b.id     = std::stoi(token);
-        std::getline(ss, token, '|'); b.title  = token;
-        std::getline(ss, token, '|'); b.author = token;
-        std::getline(ss, token, '|'); b.year   = std::stoi(token);
-
-        books.push_back(b);
+        try {
+            std::istringstream ss(line);
+            std::string token;
+            Book b;
+            std::getline(ss, token, '|'); b.id     = std::stoi(token);
+            std::getline(ss, token, '|'); b.title  = token;
+            std::getline(ss, token, '|'); b.author = token;
+            std::getline(ss, token, '|'); b.year   = std::stoi(token);
+            books.push_back(b);
+        } catch (...) {
+            std::cout << "Warning: skipping corrupted line in data file.\n";
+        }
     }
     file.close();
     return books;
@@ -34,6 +36,10 @@ std::vector<Book> loadAllBooks() {
 
 void saveAllBooks(const std::vector<Book>& books) {
     std::ofstream file(DATA_FILE);
+    if (!file.is_open()) {
+        std::cout << "Error: could not open data file for writing.\n";
+        return;
+    }
     for (const auto& b : books) {
         file << b.id << "|" << b.title << "|" << b.author << "|" << b.year << "\n";
     }
@@ -49,30 +55,56 @@ int getNextID(const std::vector<Book>& books) {
     return maxID + 1;
 }
 
+int readInt(const std::string& prompt) {
+    int value;
+    while (true) {
+        std::cout << prompt;
+        std::cin >> value;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid input. Please enter a number.\n";
+        } else {
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return value;
+        }
+    }
+}
+
+int readYear(const std::string& prompt) {
+    while (true) {
+        int year = readInt(prompt);
+        if (year >= 1000 && year <= 2100) return year;
+        std::cout << "Invalid year. Please enter a year between 1000 and 2100.\n";
+    }
+}
+
+std::string readNonEmpty(const std::string& prompt) {
+    std::string value;
+    while (true) {
+        std::cout << prompt;
+        std::getline(std::cin, value);
+        if (!value.empty()) return value;
+        std::cout << "This field cannot be empty. Please try again.\n";
+    }
+}
+
 // ── Functions ─────────────────────────────────────────────────────────────────
 
 void addRecord() {
     std::vector<Book> books = loadAllBooks();
-
     Book b;
     b.id = getNextID(books);
 
     std::cout << "\n--- Add Record ---\n";
     std::cout << "Auto ID: " << b.id << "\n";
 
-    std::cout << "Title  : ";
-    std::getline(std::cin, b.title);
-
-    std::cout << "Author : ";
-    std::getline(std::cin, b.author);
-
-    std::cout << "Year   : ";
-    std::cin >> b.year;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    b.title  = readNonEmpty("Title  : ");
+    b.author = readNonEmpty("Author : ");
+    b.year   = readYear("Year   : ");
 
     books.push_back(b);
     saveAllBooks(books);
-
     std::cout << "Record added successfully (ID=" << b.id << ").\n";
 }
 
@@ -113,11 +145,7 @@ void searchRecordByID() {
         return;
     }
 
-    int id;
-    std::cout << "\n--- Search by ID ---\n";
-    std::cout << "Enter ID: ";
-    std::cin >> id;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    int id = readInt("\n--- Search by ID ---\nEnter ID: ");
 
     for (const auto& b : books) {
         if (b.id == id) {
@@ -131,7 +159,6 @@ void searchRecordByID() {
             return;
         }
     }
-
     std::cout << "No record found with ID " << id << ".\n";
 }
 
@@ -143,11 +170,7 @@ void deleteRecord() {
         return;
     }
 
-    int id;
-    std::cout << "\n--- Delete Record ---\n";
-    std::cout << "Enter ID to delete: ";
-    std::cin >> id;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    int id = readInt("\n--- Delete Record ---\nEnter ID to delete: ");
 
     bool found = false;
     std::vector<Book> updated;
@@ -187,14 +210,9 @@ void updateRecord() {
         return;
     }
 
-    int id;
-    std::cout << "\n--- Update Record ---\n";
-    std::cout << "Enter ID to update: ";
-    std::cin >> id;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    int id = readInt("\n--- Update Record ---\nEnter ID to update: ");
 
     bool found = false;
-
     for (auto& b : books) {
         if (b.id == id) {
             found = true;
@@ -220,7 +238,18 @@ void updateRecord() {
 
             std::cout << "New year [" << b.year << "]: ";
             std::getline(std::cin, input);
-            if (!input.empty()) b.year = std::stoi(input);
+            if (!input.empty()) {
+                try {
+                    int newYear = std::stoi(input);
+                    if (newYear >= 1000 && newYear <= 2100) {
+                        b.year = newYear;
+                    } else {
+                        std::cout << "Invalid year, keeping current value.\n";
+                    }
+                } catch (...) {
+                    std::cout << "Invalid input, keeping current year.\n";
+                }
+            }
 
             std::cout << "\nRecord updated successfully.\n";
             break;
@@ -243,14 +272,7 @@ void sortRecords() {
         return;
     }
 
-    std::cout << "\n--- Sort Records ---\n";
-    std::cout << "1. Sort by title\n";
-    std::cout << "2. Sort by year\n";
-    std::cout << "Choice: ";
-
-    int choice;
-    std::cin >> choice;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    int choice = readInt("\n--- Sort Records ---\n1. Sort by title\n2. Sort by year\nChoice: ");
 
     if (choice == 1) {
         std::sort(books.begin(), books.end(), [](const Book& a, const Book& b) {
@@ -283,6 +305,7 @@ void sortRecords() {
                   << std::setw(6)  << b.year
                   << "\n";
     }
+    std::cout << std::string(67, '-') << "\n";
 }
 
 void exportToCSV() {
