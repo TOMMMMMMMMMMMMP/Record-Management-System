@@ -5,6 +5,7 @@
 #include <vector>
 #include <limits>
 #include <iomanip>
+#include <algorithm>
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -235,7 +236,53 @@ void updateRecord() {
 }
 
 void sortRecords() {
-    std::cout << "[sortRecords] Not implemented yet." << std::endl;
+    std::vector<Book> books = loadAllBooks();
+
+    if (books.empty()) {
+        std::cout << "\nNo records found.\n";
+        return;
+    }
+
+    std::cout << "\n--- Sort Records ---\n";
+    std::cout << "1. Sort by title\n";
+    std::cout << "2. Sort by year\n";
+    std::cout << "Choice: ";
+
+    int choice;
+    std::cin >> choice;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    if (choice == 1) {
+        std::sort(books.begin(), books.end(), [](const Book& a, const Book& b) {
+            return a.title < b.title;
+        });
+        std::cout << "\nSorted by title:\n";
+    } else if (choice == 2) {
+        std::sort(books.begin(), books.end(), [](const Book& a, const Book& b) {
+            return a.year < b.year;
+        });
+        std::cout << "\nSorted by year:\n";
+    } else {
+        std::cout << "Invalid choice.\n";
+        return;
+    }
+
+    std::cout << std::left
+              << std::setw(6)  << "ID"
+              << std::setw(30) << "Title"
+              << std::setw(25) << "Author"
+              << std::setw(6)  << "Year"
+              << "\n";
+    std::cout << std::string(67, '-') << "\n";
+
+    for (const auto& b : books) {
+        std::cout << std::left
+                  << std::setw(6)  << b.id
+                  << std::setw(30) << b.title
+                  << std::setw(25) << b.author
+                  << std::setw(6)  << b.year
+                  << "\n";
+    }
 }
 
 void exportToCSV() {
