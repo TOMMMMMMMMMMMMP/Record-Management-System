@@ -286,5 +286,29 @@ void sortRecords() {
 }
 
 void exportToCSV() {
-    std::cout << "[exportToCSV] Not implemented yet." << std::endl;
+    std::vector<Book> books = loadAllBooks();
+
+    if (books.empty()) {
+        std::cout << "\nNo records to export.\n";
+        return;
+    }
+
+    const std::string CSV_FILE = "data/export.csv";
+    std::ofstream file(CSV_FILE);
+
+    if (!file.is_open()) {
+        std::cout << "Error: could not create export file.\n";
+        return;
+    }
+
+    file << "ID,Title,Author,Year\n";
+    for (const auto& b : books) {
+        file << b.id << ","
+             << "\"" << b.title  << "\","
+             << "\"" << b.author << "\","
+             << b.year << "\n";
+    }
+
+    file.close();
+    std::cout << "\nExported " << books.size() << " record(s) to " << CSV_FILE << "\n";
 }
