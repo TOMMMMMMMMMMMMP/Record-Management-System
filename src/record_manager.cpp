@@ -105,7 +105,33 @@ void displayAllRecords() {
 }
 
 void searchRecordByID() {
-    std::cout << "[searchRecordByID] Not implemented yet." << std::endl;
+    std::vector<Book> books = loadAllBooks();
+
+    if (books.empty()) {
+        std::cout << "\nNo records found.\n";
+        return;
+    }
+
+    int id;
+    std::cout << "\n--- Search by ID ---\n";
+    std::cout << "Enter ID: ";
+    std::cin >> id;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    for (const auto& b : books) {
+        if (b.id == id) {
+            std::cout << "\nRecord found:\n";
+            std::cout << std::string(40, '-') << "\n";
+            std::cout << "ID     : " << b.id     << "\n";
+            std::cout << "Title  : " << b.title  << "\n";
+            std::cout << "Author : " << b.author << "\n";
+            std::cout << "Year   : " << b.year   << "\n";
+            std::cout << std::string(40, '-') << "\n";
+            return;
+        }
+    }
+
+    std::cout << "No record found with ID " << id << ".\n";
 }
 
 void deleteRecord() {
